@@ -26,6 +26,18 @@ def load_logs(limit=5):
     response = supabase.table("logs").select("*").order("id", desc=True).limit(limit).execute()
     return response.data
 
+def load_logs_by_role(role, limit=5):
+    """
+    Fetch logs with role-based filtering.
+    Only Operative role can see full logs, others see limited information.
+    """
+    if role == "Operative":
+        return load_logs(limit)
+    else:
+        # For non-Operative roles, return limited log information
+        response = supabase.table("logs").select("id, analysis, timestamp").order("id", desc=True).limit(limit).execute()
+        return response.data
+
 def delete_log(log_id):
     """Delete a specific log entry by ID"""
     supabase.table("logs").delete().eq("id", log_id).execute()
