@@ -135,12 +135,13 @@ def load_models():
 def analyze_text(text: str) -> dict:
     """Analyzes text by calling the separate model functions."""
     ner_model, classifier_model = load_models()
-    risk_level, risk_details = get_risk_assessment(text, classifier_model)
+    risk_level, risk_details, evidence = get_risk_assessment(text, classifier_model)
     entities = get_entities(text, ner_model)
     
     return {
         "risk_level": risk_level,
         "risk_details": risk_details,
+        "evidence": evidence,
         "entities": entities
     }
 
