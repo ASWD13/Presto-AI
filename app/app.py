@@ -1,6 +1,6 @@
 import sys
 import os
-import json # Added for JSON parsing in sidebar
+import json  # Added for JSON parsing in sidebar
 
 # This adds the parent directory (your project root) to Python's search path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,10 +15,10 @@ from datetime import datetime
 
 # --- CONFIGURATION ---
 ENTITY_COLORS = {
-    "LOC": "#0068C9",       # Location
-    "PER": "#FFA500",       # Person
-    "ORG": "#2E8B57",       # Organization
-    "WEAPON": "#FF4B4B",    # Custom/Example
+    "LOC": "#0068C9",      # Location
+    "PER": "#FFA500",      # Person
+    "ORG": "#2E8B57",      # Organization
+    "WEAPON": "#FF4B4B",   # Custom/Example
     "DEFAULT": "#696969"
 }
 
@@ -45,6 +45,74 @@ ROLES = {
         "color": "#96CEB4"
     }
 }
+
+# --- SVG ICONS ---
+def svg_icon(name: str, size: int = 18, stroke: str = "#fff", fill: str = "none") -> str:
+    """
+    Returns an inline SVG string for a small set of icons.
+    Icons are hand-crafted minimal paths so we don't need external files.
+    """
+    # Common prefix/suffix
+    pre = f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 24 24" fill="{fill}" stroke="{stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -3px; margin-right:6px;">'
+    post = "</svg>"
+
+    paths = {
+        # Lock (for role badge)
+        "lock": [
+            '<rect x="4" y="10" width="16" height="10" rx="2" ry="2"></rect>',
+            '<path d="M8 10V7a4 4 0 0 1 8 0v3"></path>',
+            '<circle cx="12" cy="15" r="1"></circle>'
+        ],
+        # File/Text (for documents / past analyses)
+        "file-text": [
+            '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>',
+            '<path d="M14 2v6h6"></path>',
+            '<path d="M16 13H8"></path>',
+            '<path d="M16 17H8"></path>'
+        ],
+        # Search (for “Detected Entities” / sidebar summaries)
+        "search": [
+            '<circle cx="11" cy="11" r="7"></circle>',
+            '<line x1="21" y1="21" x2="16.65" y2="16.65"></line>'
+        ],
+        # Trash (for delete buttons)
+        "trash": [
+            '<polyline points="3 6 5 6 21 6"></polyline>',
+            '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>',
+            '<path d="M10 11v6"></path>',
+            '<path d="M14 11v6"></path>',
+            '<path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>'
+        ],
+        # Alert triangle (for warnings)
+        "alert": [
+            '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>',
+            '<line x1="12" y1="9" x2="12" y2="13"></line>',
+            '<line x1="12" y1="17" x2="12" y2="17"></line>'
+        ],
+        # Siren (for app title)
+        "siren": [
+            '<rect x="5" y="9" width="14" height="10" rx="2" ry="2"></rect>',
+            '<path d="M7 9a5 5 0 0 1 10 0"></path>',
+            '<line x1="2" y1="9" x2="6" y2="9"></line>',
+            '<line x1="18" y1="9" x2="22" y2="9"></line>',
+            '<line x1="12" y1="2" x2="12" y2="5"></line>'
+        ],
+        # Bar chart (for Analysis Results)
+        "bar-chart": [
+            '<line x1="3" y1="20" x2="21" y2="20"></line>',
+            '<rect x="6" y="12" width="3" height="8"></rect>',
+            '<rect x="11" y="8" width="3" height="12"></rect>',
+            '<rect x="16" y="4" width="3" height="16"></rect>'
+        ],
+        # Tags (for entities)
+        "tags": [
+            '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L3 13.99V7a2 2 0 0 1 2-2h7l7.59 7.59a2 2 0 0 1 0 2.82z"></path>',
+            '<circle cx="7.5" cy="7.5" r="1.5"></circle>'
+        ]
+    }
+
+    content = "".join(paths.get(name, []))
+    return pre + content + post
 
 # --- RBAC HELPER FUNCTIONS ---
 def filter_output_by_role(role: str, content: str, entities: list, risk_details: str) -> dict:
@@ -80,13 +148,13 @@ def filter_output_by_role(role: str, content: str, entities: list, risk_details:
     return filtered_output
 
 def render_role_badge(role: str):
-    """Renders a styled role badge."""
+    """Renders a styled role badge (SVG instead of emoji)."""
     role_config = ROLES.get(role, ROLES["Observer"])
     st.markdown(f"""
     <div style="display: inline-block; padding: 8px 16px; background-color: {role_config['color']}20; 
-                border: 2px solid {role_config['color']}; border-radius: 20px; margin-bottom: 20px;">
+                 border: 2px solid {role_config['color']}; border-radius: 20px; margin-bottom: 20px;">
         <span style="color: {role_config['color']}; font-weight: bold; font-size: 14px;">
-            🔐 {role} - {role_config['description']}
+            {svg_icon('lock', 16, role_config['color'])}{role} - {role_config['description']}
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -170,41 +238,51 @@ def get_risk_styling(risk_level: str) -> dict:
         }
 
 # --- MAIN APP ---
-st.set_page_config(page_title="Threat Classifier", page_icon="🚨", layout="wide")
-st.title("🚨 Threat Intelligence Classifier")
-st.markdown("Upload a text file to analyze content, identify entities, and assess the risk level.")
+st.set_page_config(page_title="Presto", page_icon="🚨")  # page_icon can't be inline SVG
+
+# Title with SVG icon
+st.markdown(f"""
+<div style="display:flex; align-items:center; gap:10px;">
+  {svg_icon('siren', 46, '#c1121f')}
+  <h1 style="margin:0;">Threat Intelligence Classifier</h1>
+</div>
+<p>Upload a text file to analyze content, identify entities, and assess the risk level.</p>
+""", unsafe_allow_html=True)
+
 st.divider()
 
 # --- ROLE SELECTION ---
 if "role" not in st.session_state:
     st.session_state.role = None
 
-role_col1, role_col2 = st.columns([2, 1])
-with role_col1:
-    if st.session_state.role is None:
+# If no role has been selected yet, display the centered selection UI
+if st.session_state.role is None:
+    _, center_col, _ = st.columns([1, 1.5, 1])
+    with center_col:
         selected_role = st.selectbox(
             "**Select Your Security Clearance Level**",
             options=list(ROLES.keys()),
             help="Choose your role to determine what information you can access"
         )
-        if st.button("🔐 Confirm Role Selection", type="primary"):
+        if st.button("Confirm Role Selection", type="primary", use_container_width=True):
             st.session_state.role = selected_role
             st.rerun()
-    else:
-        # Role is locked after selection
+
+# Once a role is selected, revert to the previous layout
+else:
+    role_col1, role_col2 = st.columns([2, 1])
+    with role_col1:
         st.selectbox(
             "**Security Clearance Level**",
             options=[st.session_state.role],
             disabled=True,
             help="Role locked for this session"
         )
-
-with role_col2:
-    if st.session_state.role:
+    with role_col2:
         role_config = ROLES.get(st.session_state.role, ROLES["Observer"])
         st.markdown(f"""
         <div style="padding: 10px; background-color: {role_config['color']}15; 
-                    border: 1px solid {role_config['color']}; border-radius: 8px;">
+                       border: 1px solid {role_config['color']}; border-radius: 8px;">
             <p style="margin: 0; font-size: 12px; color: {role_config['color']};">
                 <strong>Clearance Level {role_config['level']}</strong><br>
                 {role_config['description']}
@@ -214,65 +292,71 @@ with role_col2:
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.header("📜 Past Analyses")
+    st.markdown(f"### {svg_icon('file-text', 18)}Past Analyses", unsafe_allow_html=True)
     
     # Only show logs if user has Operative clearance
     if st.session_state.role == "Operative":
         logs = load_logs_by_role(st.session_state.role, limit=5)  # fetch last 5 logs
         if logs:
             for log in logs:
-                # Get the first entity for the title, or use a default if no entities
+                # Get the first entity for the title, or use a default
                 first_entity = "No Entities"
-                if log["entities"]:
-                    # Parse the entities JSON string and get the first entity
+                if log.get("entities"):
                     try:
                         entities_list = json.loads(log["entities"]) if isinstance(log["entities"], str) else log["entities"]
                         if entities_list and len(entities_list) > 0:
-                            first_entity = entities_list[0][0]  # Get the entity name (first element of first tuple)
-                    except:
+                            first_entity = entities_list[0][0]  # first entity text
+                    except Exception:
                         first_entity = "Error"
                 
-                with st.expander(f"🔍 {first_entity} | {log['analysis']}"):
-                    st.write("**Content:**", log["text"][:200] + "...")
-                    st.write("**Entities:**", log["entities"])
-                    
-                    # Delete button for individual log
-                    col1, col2 = st.columns([3, 1])
-                    with col2:
-                        if st.button("🗑️", key=f"delete_{log['id']}", help="Delete this log entry"):
+                # Use st.expander for a cleaner structure that can contain Streamlit widgets
+                expander_label = f"{first_entity} | {log.get('analysis', '')}"
+                with st.expander(expander_label):
+                    # Display content and entities
+                    st.markdown(f"""
+                    <div style="padding:4px 0;">
+                        <div><strong>Content:</strong> {(log.get("text","")[:200] + "...")}</div>
+                        <div style="margin-top:4px;"><strong>Entities:</strong> {log.get("entities","[]")}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Place delete button inside the expander, aligned to the right
+                    _, btn_col = st.columns([3, 1])
+                    with btn_col:
+                        if st.button("🗑️", key=f"delete_{log['id']}", help="Delete this log entry", use_container_width=True):
                             delete_log(log['id'])
                             st.rerun()
             
-            # Delete All button at the bottom
+            # Delete All button at the bottom, outside the loop
             st.divider()
             if st.button("🗑️ Delete All History", type="secondary", use_container_width=True):
-                # Confirmation dialog
                 if st.session_state.get('confirm_delete_all', False):
                     delete_all_logs()
                     st.session_state.confirm_delete_all = False
                     st.rerun()
                 else:
                     st.session_state.confirm_delete_all = True
-                    st.warning("⚠️ Click again to confirm deletion of ALL history")
+                    st.warning("Click again to confirm deletion of ALL history")
         else:
             st.info("No logs yet. Upload a file to see results here.")
     else:
-        # Show limited log information for non-Operative roles
         logs = load_logs_by_role(st.session_state.role, limit=3)
         if logs:
-            st.info(f"📊 Recent Analysis Count: {len(logs)}")
-            st.info("🔒 Full analysis history requires Operative clearance level.")
+            st.info(f"Recent Analysis Count: {len(logs)}")
+            st.info("Full analysis history requires Operative clearance level.")
         else:
-            st.info("🔒 Access to analysis history requires Operative clearance level.")
+            st.info("Access to analysis history requires Operative clearance level.")
+
 
 # --- FILE UPLOAD ---
 if st.session_state.role is None:
-    st.warning("⚠️ Please select your security clearance level before proceeding.")
+    st.warning("Please select your security clearance level before proceeding.")
     st.stop()
 
 with st.container(border=True):
+    st.markdown(f"**{svg_icon('file-text', 16)}Upload a document for analysis**", unsafe_allow_html=True)
     uploaded_file = st.file_uploader(
-        "**Upload a document for analysis**", type=["txt"], help="Only .txt files are supported."
+        "", type=["txt"], help="Only .txt files are supported."
     )
 
 if uploaded_file is not None:
@@ -305,15 +389,15 @@ if uploaded_file is not None:
     col_text, col_analysis = st.columns(2, gap="large")
 
     with col_text:
-        st.subheader("📄 Document Content")
+        st.markdown(f"### {svg_icon('file-text', 18)}Document Content", unsafe_allow_html=True)
         with st.container(height=350, border=True):
             if filtered_output["content"] == "[REDACTED]":
-                st.warning("🔒 Document content is not available at your clearance level.")
+                st.warning("Document content is not available at your clearance level.")
             else:
                 st.write(filtered_output["content"])
 
     with col_analysis:
-        st.subheader("📊 Analysis Results")
+        st.markdown(f"### {svg_icon('bar-chart', 18)}Analysis Results", unsafe_allow_html=True)
         risk_styling = get_risk_styling(analysis_results["risk_level"])
         
         # Custom risk level display with dynamic styling
@@ -326,10 +410,10 @@ if uploaded_file is not None:
         """, unsafe_allow_html=True)
         
         st.divider()
-        st.subheader("🔍 Detected Entities")
+        st.markdown(f"### {svg_icon('tags', 18)}Detected Entities", unsafe_allow_html=True)
         render_entities_by_role(analysis_results["entities"], st.session_state.role)
 else:
     if st.session_state.role:
-        st.info("👋 Ready for analysis! Please upload a file to begin.")
+        st.info("Ready for analysis! Please upload a file to begin.")
     else:
-        st.info("👋 Welcome! Please select your security clearance level to begin.")
+        st.info("Welcome! Please select your security clearance level to begin.")
