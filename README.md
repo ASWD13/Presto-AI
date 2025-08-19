@@ -2,7 +2,7 @@
 
 Transform raw intercepted communications into actionable intelligence using AI.
 
-Live : https://prestoai.streamlit.app
+Demo : https://prestoai.streamlit.app
 
 ## Project Overview
 
