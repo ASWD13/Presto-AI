@@ -1,6 +1,6 @@
 # Presto: AI-Powered Threat Intelligence Classifier
 
-Transform raw intercepted communications into actionable intelligence using AI.
+Transform raw intercepted communications into actionable intelligence
 
 Demo : https://prestoai.streamlit.app
 
