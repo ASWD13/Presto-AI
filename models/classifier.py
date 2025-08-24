@@ -14,10 +14,22 @@ def get_risk_assessment(text: str, classifier_pipeline) -> tuple:
     # Get the label with the highest score
     top_label = result['labels'][0]
     
+    # --- NEW: Define critical keywords for override ---
+    critical_keywords = ["ied", "bomb", "target", "neutralize", "attack", "hostage", "weapon"]
+
+    # --- NEW: Check if any critical keyword is in the text ---
+    text_lower = text.lower()
+    is_critical_override = any(keyword in text_lower for keyword in critical_keywords)
+    
     # Determine risk level and description
-    if "critical" in top_label:
+    # --- MODIFIED: Added check for 'is_critical_override' ---
+    if "critical" in top_label or is_critical_override:
         risk_level = "Critical"
         description = "High threat detected"
+        # If overridden, update the top_label for evidence finding
+        if is_critical_override and "critical" not in top_label:
+            top_label = "critical threat"
+            description += " (Upgraded by keyword)" # Add a note for clarity
     elif "suspicious" in top_label:
         risk_level = "Suspicious"
         description = "Requires further review"

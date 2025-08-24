@@ -1,0 +1,16 @@
+INTEL REPORT: AX-7591
+DATE: 23-AUG-2025
+SUBJECT: Intercepted communications related to operative "Viper".
+
+--- BEGIN LOG ---
+
+MESSAGE 1 (18:30 IST):
+"Viper, this is Eagle. Status report on the ground situation in Hyderabad? Sab theek hai? Logistics from our contact Mishra are confirmed for the 25th."
+
+MESSAGE 2 (19:55 IST):
+"Eagle, haan, package mil gaya. The shipment is secure. I will meet the Sun Syndicate contact at the Seafront Hotel in Mumbai tomorrow to finalize the next steps. They are expecting a full demonstration."
+
+MESSAGE 3 (21:40 IST):
+"The primary target is Dr. Arush Khan. He is the asset we need to neutralize. The plan is active for tomorrow night. The device, an IED, is prepped and will be placed at Grid 8B near the main convoy route. We also have an AK-47 for close-quarters engagement if necessary. The operation is a go."
+
+--- END LOG ---
