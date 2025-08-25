@@ -103,17 +103,29 @@ def render_entities_by_role(entities: list, role: str):
     st.markdown(entity_html, unsafe_allow_html=True)
 
 # --- MODEL LOADING ---
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def load_models():
-    ner_pipeline = pipeline("ner", model="Davlan/distilbert-base-multilingual-cased-ner-hrl", aggregation_strategy="simple")
-    classifier_pipeline = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-1")
+    with st.spinner("Loading AI models..."):
+        ner_pipeline = pipeline("ner", model="Davlan/distilbert-base-multilingual-cased-ner-hrl", aggregation_strategy="simple")
+        classifier_pipeline = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-1")
     return ner_pipeline, classifier_pipeline
 
 # --- CORE APP LOGIC ---
 def analyze_text(text: str) -> dict:
-    ner_model, classifier_model = load_models()
+    # Use cached models from session state if available
+    if not st.session_state.models_loaded:
+        ner_model, classifier_model = load_models()
+        st.session_state.ner_model = ner_model
+        st.session_state.classifier_model = classifier_model
+        st.session_state.models_loaded = True
+    else:
+        ner_model = st.session_state.ner_model
+        classifier_model = st.session_state.classifier_model
+    
+    # Process both tasks sequentially for now (can be optimized later)
     risk_level, risk_details, evidence = get_risk_assessment(text, classifier_model)
     entities = get_entities(text, ner_model)
+    
     return {"risk_level": risk_level, "risk_details": risk_details, "evidence": evidence, "entities": entities}
 
 def get_risk_styling(risk_level: str) -> dict:
@@ -181,6 +193,15 @@ def render_dashboard():
 
 # --- MAIN APP ---
 st.set_page_config(page_title="Presto", page_icon="🚨")
+
+# Initialize session state for models
+if "models_loaded" not in st.session_state:
+    st.session_state.models_loaded = False
+if "ner_model" not in st.session_state:
+    st.session_state.ner_model = None
+if "classifier_model" not in st.session_state:
+    st.session_state.classifier_model = None
+
 st.markdown(f"""
 <div style="display:flex; align-items:center; gap:10px;">
   {svg_icon('siren', 46, '#c1121f')}
