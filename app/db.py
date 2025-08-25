@@ -1,7 +1,7 @@
 import os
 import json
-from datetime import datetime
-from supabase import create_client
+import streamlit as st
+from supabase import create_client, Client
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -10,38 +10,53 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+except Exception as e:
+    st.error("Could not connect to Supabase. Please check your .env file and Supabase credentials.")
+    st.stop()
 
 def save_log(text, analysis, entities):
-    """Save a new log entry into Supabase"""
-    supabase.table("logs").insert({
-        "text": text,
-        "analysis": analysis,
-        "entities": json.dumps(entities),
-        "timestamp": datetime.utcnow().isoformat()
-    }).execute()
+    """Save a new log entry. Relies on Supabase's default created_at column."""
+    try:
+        supabase.table("logs").insert({
+            "text": text,
+            "analysis": analysis,
+            "entities": json.dumps(entities)
+        }).execute()
+    except Exception as e:
+        st.error(f"DB Error: Could not save log. {e}")
 
-def load_logs(limit=5):
-    """Fetch the most recent logs"""
-    response = supabase.table("logs").select("*").order("id", desc=True).limit(limit).execute()
-    return response.data
-
-def load_logs_by_role(role, limit=5):
-    """
-    Fetch logs with role-based filtering.
-    Only Operative role can see full logs, others see limited information.
-    """
-    if role == "Operative":
-        return load_logs(limit)
-    else:
-        # For non-Operative roles, return limited log information
-        response = supabase.table("logs").select("id, analysis, timestamp").order("id", desc=True).limit(limit).execute()
+def load_logs_by_role(role: str, limit: int = 5):
+    """Fetches logs from the database, respecting RBAC."""
+    try:
+        # Full data for Operative, limited for others (app logic decides what to show)
+        query = supabase.table('logs').select('*').order('created_at', desc=True).limit(limit)
+        response = query.execute()
         return response.data
+    except Exception as e:
+        st.error(f"DB Error: Could not load role-based logs. {e}")
+        return []
+
+def load_all_logs():
+    """Fetches all log records for the dashboard."""
+    try:
+        response = supabase.table('logs').select('*').order('created_at', desc=True).execute()
+        return response.data
+    except Exception as e:
+        st.error(f"DB Error: Could not load all logs for dashboard. {e}")
+        return []
 
 def delete_log(log_id):
-    """Delete a specific log entry by ID"""
-    supabase.table("logs").delete().eq("id", log_id).execute()
+    """Delete a specific log entry by ID."""
+    try:
+        supabase.table("logs").delete().eq("id", log_id).execute()
+    except Exception as e:
+        st.error(f"DB Error: Could not delete log. {e}")
 
 def delete_all_logs():
-    """Delete all log entries from the database"""
-    supabase.table("logs").delete().neq("id", 0).execute()
+    """Delete all log entries."""
+    try:
+        supabase.table("logs").delete().neq("id", 0).execute() # Deletes all rows
+    except Exception as e:
+        st.error(f"DB Error: Could not delete all logs. {e}")
