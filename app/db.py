@@ -2,13 +2,23 @@ import os
 import json
 import streamlit as st
 from supabase import create_client, Client
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Prefer Streamlit secrets, fallback to environment variables for local dev
+def _get_secret(name: str, default: str | None = None) -> str | None:
+    # Try flat keys in st.secrets first
+    if name in st.secrets:
+        return st.secrets[name]
+    # Try nested structure like st.secrets["supabase"]["url"|"key"]
+    if "supabase" in st.secrets:
+        nested = st.secrets["supabase"]
+        mapped_key = {"SUPABASE_URL": "url", "SUPABASE_KEY": "key"}.get(name)
+        if mapped_key and mapped_key in nested:
+            return nested[mapped_key]
+    # Fallback to environment variable
+    return os.getenv(name, default)
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_URL = _get_secret("SUPABASE_URL")
+SUPABASE_KEY = _get_secret("SUPABASE_KEY")
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)

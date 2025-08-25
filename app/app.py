@@ -105,8 +105,8 @@ def render_entities_by_role(entities: list, role: str):
 # --- MODEL LOADING ---
 @st.cache_resource
 def load_models():
-    ner_pipeline = pipeline("ner", model="Davlan/xlm-roberta-base-ner-hrl", aggregation_strategy="simple")
-    classifier_pipeline = pipeline("zero-shot-classification", model="joeddav/xlm-roberta-large-xnli")
+    ner_pipeline = pipeline("ner", model="Davlan/distilbert-base-multilingual-cased-ner-hrl", aggregation_strategy="simple")
+    classifier_pipeline = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-1")
     return ner_pipeline, classifier_pipeline
 
 # --- CORE APP LOGIC ---
